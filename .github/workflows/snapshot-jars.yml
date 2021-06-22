@@ -1,0 +1,29 @@
+name: CI
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # checkout the build repo
+      - name: Checkout build repo
+        uses: actions/checkout@v2
+        with:
+          repository: 'mch2/opensearch-build'
+          path: opensearch-build
+          ref: 'workflow'
+
+      - name: pull projects
+        run: |
+          echo Pulling all projects
+          meta exec "sudo act -r --secret-file .env -j test-build -P ubuntu-latest=catthehacker/ubuntu:runner-latest"
+
+      # Runs a set of commands using the runners shell
+      - name: Run a multi-line script
+        run: |
+          echo Add other actions to build,
+          echo test, and deploy your project.
