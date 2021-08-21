@@ -7,14 +7,13 @@ import sys
 sys.path.insert(0,"../git")
 from git.git_repository import GitRepository
 
-
 '''
 This class is responsible for signing an artifact using the OpenSearch-signer-client and verifying its signature.
 The signed artifacts will be found in the same location as the original artifacts.
 '''
 class Signer:
     def __init__(self):
-        self.git_repo = GitRepository("https://github.com/opensearch-project/opensearch-signer-client.git", "HEAD")
+        self.git_repo = GitRepository("https://${GITHUB_TOKEN}@github.com/opensearch-project/opensearch-signer-client.git", "HEAD")
         self.git_repo.execute("./bootstrap", subdirname = "src")
         self.git_repo.execute("rm config.cfg", subdirname = "src")
 
