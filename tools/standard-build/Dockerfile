@@ -25,13 +25,12 @@
 #        UID: Optional. Specify the opensearch userid. Defaults to 1000.
 #        GID: Optional. Specify the opensearch groupid. Defaults to 1000.
 
-FROM ubuntu:20.04
+FROM public.ecr.aws/ubuntu/ubuntu:20.04
 
 RUN apt-get update && \
-    apt-get install -y openjdk-14-jdk && \
-    apt-get install -y curl && \
-    apt-get install python -y && \
-    apt-get install git -y
+    apt-get install -y openjdk-11-jdk && \
+    apt-get install -y openjdk-8-jdk && \
+    apt-get install -y git curl zip unzip iproute2
 
 ARG UID=1000
 ARG GID=1000
@@ -42,33 +41,15 @@ RUN groupadd -g $GID opensearch && \
     mkdir -p /usr/share/opensearch && \
     chown -R $UID:$GID /usr/share/opensearch
 
+COPY check.sh /usr/share/opensearch
+RUN chmod +x /usr/share/opensearch/check.sh
+
+# Java 14 is currently required for bwc tests
+RUN curl -L https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14.0.2%2B12/OpenJDK14U-jdk_x64_linux_hotspot_14.0.2_12.tar.gz -o jdk-14.tar.gz && \
+    tar xvf jdk-14.tar.gz
+ENV JAVA14_HOME="/jdk-14.0.2+12"
+ENV JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 USER $UID
 
 WORKDIR /usr/share/opensearch
-
-# nvm environment variables
-ENV NVM_DIR /usr/share/opensearch/.nvm
-ENV NODE_VERSION 10.23.1
-
-# install nvm
-# https://github.com/creationix/nvm#install-script
-RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
-
-# install node and npm
-RUN . $NVM_DIR/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
-
-# add node and npm to path so the commands are available
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
-
-# install yarn
-RUN npm install -g yarn@^1.22.1
-
-# confirm installation
-RUN node -v
-RUN npm -v
-RUN yarn -v
